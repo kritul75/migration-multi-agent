@@ -11,6 +11,10 @@ const fs = require("fs-extra");
 const analyzer = require("../services/analyzer");
 const aiAnalyzer = require("../services/aiAnalyzer");
 const migrationPlanner = require("../services/migrationPlanner");
+const migrationExecutor = require("../services/migrationExecutor");
+const validator = require("../services/validator");
+const fixer = require("../services/fixer");
+
 
 const router = express.Router();
 
@@ -69,6 +73,7 @@ router.post(
 
         "utf8",
       );
+      //saving migration file
       const migrated = await migrationExecutor(code);
       await fs.writeFile(
         "migrated/auth.ts",
@@ -80,17 +85,51 @@ router.post(
 @calling migrationPlanner 
 */
       const plan = await migrationPlanner(report);
+/*
+@calling validator
+*/
+      const validation = await validator();
+/*
+adding fixer for validation errors
+*/
+    let fixedCode = null;
 
-      await fs.remove(zipPath);
+    if (!validation.success) {
+      fixedCode = await fixer(
+        migrated,
 
-      await fs.remove(extractPath);
+        validation.errors,
+      );
+
+      await fs.writeFile(
+        "migrated/auth.ts",
+
+        fixedCode,
+      );
+    }
+/*
+adding second round of validation after fixing
+*/
+    let secondValidation = null;
+
+    if (fixedCode) {
+      secondValidation = await validator();
+    }
+
+
+//-----------removing uploaded and extracted files----------------
+      //await fs.remove(zipPath);
+
+      //await fs.remove(extractPath);
 
       res.json({
-        report,
+        initialMigration: migrated,
 
-        architectureAnalysis: ai,
+        firstValidation: validation,
 
-        migrationPlan: plan,
+        fixedMigration: fixedCode,
+
+        secondValidation,
       });
     } catch (err) {
         console.log("Error processing upload:");

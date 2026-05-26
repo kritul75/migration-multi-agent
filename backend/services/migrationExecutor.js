@@ -35,7 +35,7 @@ ${code}
 
   try {
     const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: process.env.MODEL || "gemini-2.5-flash",
 
       contents: prompt,
     });

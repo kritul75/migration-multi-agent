@@ -7,7 +7,7 @@ const path = require("path");
 const unzipper = require("unzipper");
 
 const fs = require("fs-extra");
-
+const migrationOrchestrator = require("../services/migrationOrchestrator");
 const analyzer = require("../services/analyzer");
 const aiAnalyzer = require("../services/aiAnalyzer");
 const migrationPlanner = require("../services/migrationPlanner");
@@ -82,54 +82,21 @@ router.post(
       );
 
 /*
-@calling migrationPlanner 
+adding orchestration for all route files
 */
-      const plan = await migrationPlanner(report);
-/*
-@calling validator
-*/
-      const validation = await validator();
-/*
-adding fixer for validation errors
-*/
-    let fixedCode = null;
+      const migrationResults = await migrationOrchestrator(
+        extractPath,
 
-    if (!validation.success) {
-      fixedCode = await fixer(
-        migrated,
-
-        validation.errors,
+        report,
       );
-
-      await fs.writeFile(
-        "migrated/auth.ts",
-
-        fixedCode,
-      );
-    }
-/*
-adding second round of validation after fixing
-*/
-    let secondValidation = null;
-
-    if (fixedCode) {
-      secondValidation = await validator();
-    }
-
-
 //-----------removing uploaded and extracted files----------------
-      //await fs.remove(zipPath);
+      await fs.remove(zipPath);
 
-      //await fs.remove(extractPath);
+      await fs.remove(extractPath);
 
       res.json({
-        initialMigration: migrated,
-
-        firstValidation: validation,
-
-        fixedMigration: fixedCode,
-
-        secondValidation,
+        report,
+        migrationResults,
       });
     } catch (err) {
         console.log("Error processing upload:");

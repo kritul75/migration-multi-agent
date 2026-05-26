@@ -1,10 +1,19 @@
 const { exec } = require("child_process");
 
+const path = require("path");
+
 module.exports = () => {
   return new Promise((resolve) => {
-    console.log("running validator");
+    const tsconfig = path.resolve(
+      __dirname,
+
+      "..",
+
+      "tsconfig.json",
+    );
+
     exec(
-      "npx tsc",
+      `npx tsc --project "${tsconfig}"`,
 
       (
         err,

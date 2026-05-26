@@ -117,9 +117,9 @@ adding second round of validation after fixing
       }
 
       //-----------removing uploaded and extracted files----------------
-      //await fs.remove(zipPath);
+      await fs.remove(zipPath);
 
-      //await fs.remove(extractPath);
+      await fs.remove(extractPath);
 
       res.json({
         initialMigration: migrated,

@@ -3,6 +3,7 @@
     "@babel/parser": "^7.29.3",
     "@babel/traverse": "^7.29.0",
     "dotenv": "^17.4.2",
+    "ollama": "^0.6.3",
     "typescript": "^6.0.3"
   },
   "devDependencies": {

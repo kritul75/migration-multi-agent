@@ -8,7 +8,7 @@ module.exports = () => {
       __dirname,
 
       "..",
-
+ 
       "tsconfig.json",
     );
 

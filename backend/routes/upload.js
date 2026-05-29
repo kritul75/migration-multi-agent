@@ -96,7 +96,10 @@ adding orchestration for all route files
 
       res.json({
         report,
-        migrationResults,
+
+        migrationSummary: migrationResults.summary,
+
+        migrationResults: migrationResults.results,
       });
     } catch (err) {
         console.log("Error processing upload:");

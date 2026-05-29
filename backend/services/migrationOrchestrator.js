@@ -10,16 +10,28 @@ const fixer = require("./fixer");
 
 const findFile = require("../utils/findFile");
 
+const getFileType = require("../utils/getFileType");
+
 module.exports = async (
   extractPath,
 
   report,
 ) => {
   const results = [];
-
+  
   await fs.ensureDir("migrated");
 
-  for (const file of report.routeFiles) {
+  const filesToMigrate = [
+    ...report.middlewareFiles,
+
+    ...report.modelFiles,
+
+    ...report.routeFiles,
+  ];
+
+  
+
+  for (const file of filesToMigrate) {
     try {
       console.log(
         `\nMigrating:
@@ -64,7 +76,7 @@ ${file}`,
 
       let attempts = 0;
 
-      while (!validation.success && attempts < 3) {
+      while (!validation.success && attempts <= 1) {
         console.log(
             `Fixing:
             ${file}
@@ -92,15 +104,19 @@ ${file}`,
       results.push({
         file,
 
+        type: getFileType(file, report),
+
         success: validation.success,
 
-        attempts,
-
         errors: validation.errors || null,
+
+        attempts,
       });
     } catch (err) {
       results.push({
         file,
+
+        type: getFileType(file, report),
 
         success: false,
 
@@ -108,8 +124,15 @@ ${file}`,
       });
     }
   }
+  //generating summary
+  const summary = {
+    totalFiles: results.length,
 
-  return results;
+    success: results.filter((r) => r.success).length,
+
+    failed: results.filter((r) => !r.success).length,
+  };
+  return { summary , results};
 };
 
 

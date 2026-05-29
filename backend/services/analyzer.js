@@ -23,23 +23,38 @@ async function walk(dir, files = []) {
 
 module.exports = async (repoPath) => {
   const files = await walk(repoPath);
-
+  
+  const report  = {
+      framework: "Unknown",
+      dependencies: [],
+      routeFiles: [],
+      modelFiles: [],
+      middlewareFiles: [],
+      totalFiles: 0,
+      
+  }
   let packageJson = null;
 
-  let routes = [];
-
-  let dependencies = [];
 
   for (let file of files) {
+    report.totalFiles++;
     if (file.endsWith("package.json")) {
       packageJson = JSON.parse(await fs.readFile(file, "utf8"));
 
-      dependencies = Object.keys(packageJson.dependencies || {});
+      report.dependencies = Object.keys(packageJson.dependencies || {});
     }
 
     // extracting routes
-    if (file.includes("routes") || file.includes("Routes")) {
-      routes.push(path.basename(file));
+    if (file.toLowerCase().includes("routes") || file.toLowerCase().includes("route")) {
+      report.routeFiles.push(path.basename(file));
+    }
+    // extracting models
+    if (file.toLowerCase().includes("models") || file.toLowerCase().includes("model")) {
+      report.modelFiles.push(path.basename(file));
+    }
+    // extracting middlewares
+    if (file.toLowerCase().includes("middleware") || file.toLowerCase().includes("middlewares")) {
+      report.middlewareFiles.push(path.basename(file));
     }
   }
 
@@ -47,11 +62,15 @@ module.exports = async (repoPath) => {
   const deepFeatures = await featureAnalyzer(files);
 
   return {
-    framework: dependencies.includes("express") ? "Express" : "Unknown",
+    framework: report.dependencies.includes("express") ? "Express" : "Unknown",
 
-    dependencies,
+    dependencies: report.dependencies,
 
-    routeFiles: routes,
+    routeFiles: report.routeFiles,
+
+    modelFiles: report.modelFiles,
+
+    middlewareFiles: report.middlewareFiles,
 
     totalFiles: files.length,
 

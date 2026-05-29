@@ -1,10 +1,6 @@
 require("dotenv").config();
 
-const { GoogleGenAI } = require("@google/genai");
-
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const localLLm = require("./localLLm");
 
 module.exports = async (
   code,
@@ -61,14 +57,10 @@ No explanation.
 
 `;
     console.log("running fixer");
-    const result = await genAI.models.generateContent({
-      model: process.env.MODEL || "gemini-2.5-flash",
-
-      contents: prompt,
-    });
+    const result = await localLLm(prompt);
     console.log("fixer completed");
 
-    let fixed = result.candidates[0].content.parts[0].text.trim();
+    let fixed = result.trim();
 
     fixed = fixed
 
